@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     )
 
     # --- Database ---
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/aivoa"
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5433/aivoa"
 
     # --- LLM (Groq) — not used in Chunk 2, but validated at startup ---
     GROQ_API_KEY: str = ""

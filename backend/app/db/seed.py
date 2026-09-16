@@ -88,9 +88,9 @@ async def seed():
             if result.scalar_one_or_none() is None:
                 complaint = Complaint(**data)
                 session.add(complaint)
-                print(f"  ✓ Seeded: {data['complaint_number']}")
+                print(f"  [OK] Seeded: {data['complaint_number']}")
             else:
-                print(f"  – Already exists: {data['complaint_number']}")
+                print(f"  [--] Already exists: {data['complaint_number']}")
 
         await session.commit()
 
