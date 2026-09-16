@@ -31,8 +31,8 @@ PostgreSQL
 | SQLAlchemy models    | ✅ Complete  | 4 tables, enums, indexes, relationships        |
 | Alembic migrations   | ✅ Complete  | Async-aware, initial migration generated       |
 | Pydantic schemas     | ✅ Complete  | Canonical contracts for API, LLM, frontend     |
-| LangGraph agent      | 🔲 Planned   | Chunk 4                                        |
-| Groq LLM integration | 🔲 Planned   | Chunk 4                                        |
+| LangGraph agent      | ✅ Scaffold  | Mocked deterministic workflow structure        |
+| Groq LLM integration | 🔲 Planned   | Chunk 5                                        |
 | Redux Toolkit        | 🔲 Planned   | Chunk 5                                        |
 | Complaint form UI    | 🔲 Planned   | Chunk 5–6                                      |
 | Risk/CAPA assessment | 🔲 Planned   | Chunk 8                                        |
@@ -41,7 +41,7 @@ PostgreSQL
 ### Current Status
 
 ```
-Chunk 3 — Pydantic Data Contracts
+Chunk 4 — LangGraph Workflow Skeleton
 ```
 
 ---
@@ -215,6 +215,26 @@ All complaint fields are **Optional** because AI extraction may only find some f
 
 ---
 
+## LangGraph Workflow (Chunk 4)
+
+LangGraph is the workflow/orchestration layer. The LangGraph state acts as temporary working memory for one workflow execution. (PostgreSQL remains the persistent system of record). Each node in the graph has a single responsibility.
+
+Currently, all nodes are mocked and deterministic. Real LLM/database integrations will be added in later chunks.
+
+```mermaid
+flowchart TD
+    START --> router
+    router --> extraction
+    extraction --> merge
+    merge --> completeness
+    completeness --> duplicate
+    duplicate --> risk_capa
+    risk_capa --> compose_response
+    compose_response --> END
+```
+
+---
+
 ## Async Architecture
 
 The backend is built async-first (`async def` endpoints, async-compatible structure). This is deliberate because the production workflow involves:
@@ -241,16 +261,28 @@ AIVOA/
 │   │   │   ├── models.py        # SQLAlchemy ORM models (4 tables)
 │   │   │   ├── session.py       # Async engine & session factory
 │   │   │   └── seed.py          # Sample data for testing
-│   │   └── schemas/
-│   │       ├── __init__.py      # Public exports
-│   │       └── complaint.py     # Canonical Pydantic data contracts
+│   │   ├── schemas/
+│   │   │   ├── __init__.py      # Public exports
+│   │   │   └── complaint.py     # Canonical Pydantic data contracts
+│   │   └── graph/
+│   │       ├── state.py         # LangGraph state TypedDict
+│   │       ├── graph.py         # Workflow wiring
+│   │       └── nodes/           # Deterministic/mocked nodes
+│   │           ├── router.py
+│   │           ├── extraction.py
+│   │           ├── merge.py
+│   │           ├── completeness.py
+│   │           ├── duplicate.py
+│   │           ├── risk_capa.py
+│   │           └── compose_response.py
 │   ├── alembic/
 │   │   ├── env.py               # Async migration environment
 │   │   └── versions/            # Migration scripts
 │   ├── tests/
 │   │   ├── test_health.py       # Health endpoint tests (4)
 │   │   ├── test_models.py       # Model/metadata tests (18)
-│   │   └── test_schemas.py      # Schema validation tests (31)
+│   │   ├── test_schemas.py      # Schema validation tests (31)
+│   │   └── test_graph.py        # LangGraph mock workflow tests (6)
 │   ├── alembic.ini
 │   ├── requirements.txt
 │   └── pytest.ini
