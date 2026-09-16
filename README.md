@@ -30,8 +30,9 @@ PostgreSQL
 | PostgreSQL           | ✅ Docker    | docker-compose with healthcheck                |
 | SQLAlchemy models    | ✅ Complete  | 4 tables, enums, indexes, relationships        |
 | Alembic migrations   | ✅ Complete  | Async-aware, initial migration generated       |
-| LangGraph agent      | 🔲 Planned   | Chunk 3–4                                      |
-| Groq LLM integration | 🔲 Planned   | Chunk 3                                        |
+| Pydantic schemas     | ✅ Complete  | Canonical contracts for API, LLM, frontend     |
+| LangGraph agent      | 🔲 Planned   | Chunk 4                                        |
+| Groq LLM integration | 🔲 Planned   | Chunk 4                                        |
 | Redux Toolkit        | 🔲 Planned   | Chunk 5                                        |
 | Complaint form UI    | 🔲 Planned   | Chunk 5–6                                      |
 | Risk/CAPA assessment | 🔲 Planned   | Chunk 8                                        |
@@ -40,7 +41,7 @@ PostgreSQL
 ### Current Status
 
 ```
-Chunk 2 — Database Layer
+Chunk 3 — Pydantic Data Contracts
 ```
 
 ---
@@ -193,6 +194,27 @@ alembic history          # view migration history
 
 ---
 
+## Application Contracts
+
+The backend maintains a strict separation between two data layers:
+
+| Layer | Location | Role |
+|---|---|---|
+| **SQLAlchemy models** | `app/db/models.py` | Database persistence — table definitions, constraints, relationships |
+| **Pydantic schemas** | `app/schemas/complaint.py` | Validated application/AI contracts — API, LLM extraction, frontend |
+
+These two layers do NOT inherit from each other. SQLAlchemy owns "how data is stored"; Pydantic owns "how data is validated and exchanged."
+
+**`ComplaintFields`** is the canonical complaint shape (§5.2 of the architecture spec). It is used by:
+- The extraction LLM (via `.model_json_schema()` for Groq's `strict: true` mode)
+- The merge node (partial patch: only non-None fields overwrite the form)
+- FastAPI responses (`form_patch` in the copilot response)
+- The frontend (drives the read-only complaint form)
+
+All complaint fields are **Optional** because AI extraction may only find some fields, users provide information incrementally, and the merge node uses `None` to mean "no change."
+
+---
+
 ## Async Architecture
 
 The backend is built async-first (`async def` endpoints, async-compatible structure). This is deliberate because the production workflow involves:
@@ -215,16 +237,20 @@ AIVOA/
 │   │   ├── main.py              # FastAPI application
 │   │   ├── core/
 │   │   │   └── config.py        # pydantic-settings configuration
-│   │   └── db/
-│   │       ├── models.py        # SQLAlchemy ORM models (4 tables)
-│   │       ├── session.py       # Async engine & session factory
-│   │       └── seed.py          # Sample data for testing
+│   │   ├── db/
+│   │   │   ├── models.py        # SQLAlchemy ORM models (4 tables)
+│   │   │   ├── session.py       # Async engine & session factory
+│   │   │   └── seed.py          # Sample data for testing
+│   │   └── schemas/
+│   │       ├── __init__.py      # Public exports
+│   │       └── complaint.py     # Canonical Pydantic data contracts
 │   ├── alembic/
 │   │   ├── env.py               # Async migration environment
 │   │   └── versions/            # Migration scripts
 │   ├── tests/
-│   │   ├── test_health.py       # Health endpoint tests
-│   │   └── test_models.py       # Model/metadata tests (18 tests)
+│   │   ├── test_health.py       # Health endpoint tests (4)
+│   │   ├── test_models.py       # Model/metadata tests (18)
+│   │   └── test_schemas.py      # Schema validation tests (31)
 │   ├── alembic.ini
 │   ├── requirements.txt
 │   └── pytest.ini
