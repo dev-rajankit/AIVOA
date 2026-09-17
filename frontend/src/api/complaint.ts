@@ -15,3 +15,13 @@ export async function getComplaintAuditLog(id: string) {
   }
   return response.json();
 }
+
+export async function saveComplaint(id: string) {
+  const response = await fetch(`${API_BASE_URL}/api/complaints/${id}/save`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to save complaint: ${response.statusText}`);
+  }
+  return response.json();
+}

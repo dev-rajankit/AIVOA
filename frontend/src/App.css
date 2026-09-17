@@ -52,7 +52,7 @@
 }
 
 .right-panel {
-  height: fit-content;
+  overflow-y: auto;
 }
 
 /* Complaint Form */

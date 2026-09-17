@@ -1,10 +1,43 @@
-import React from "react";
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import { ComplaintField } from "./ComplaintField";
+import { saveComplaint } from "../../api/complaint";
+import { RootState } from "../../app/store";
 
 export const ComplaintForm: React.FC = () => {
+  const complaintId = useSelector((state: RootState) => state.complaintForm.complaintId);
+  const [saveStatus, setSaveStatus] = useState<string | null>(null);
+
+  const handleReset = () => {
+    // A complete reload ensures all Redux state is wiped clean and a new session ID is generated
+    window.location.reload();
+  };
+
+  const handleSave = async () => {
+    if (!complaintId) {
+      setSaveStatus("No complaint data to save yet.");
+      setTimeout(() => setSaveStatus(null), 3000);
+      return;
+    }
+    
+    try {
+      await saveComplaint(complaintId);
+      setSaveStatus("Complaint stored successfully!");
+    } catch (err) {
+      setSaveStatus("Failed to store complaint.");
+    }
+    
+    setTimeout(() => setSaveStatus(null), 3000);
+  };
+
   return (
     <div className="complaint-form-container">
-      <h2>Complaint Structured Data</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+        <h2>Complaint Structured Data</h2>
+      </div>
+
+
+
       <p className="form-helper-text">
         Complaint fields are populated and updated by the Copilot.
       </p>
@@ -53,6 +86,27 @@ export const ComplaintForm: React.FC = () => {
           <ComplaintField label="Customer Name" fieldKey="customer_name" />
         </div>
       </section>
+
+      {saveStatus && (
+        <div style={{ padding: "0.75rem", backgroundColor: saveStatus.includes("Failed") || saveStatus.includes("No complaint") ? "#fed7d7" : "#c6f6d5", color: saveStatus.includes("Failed") || saveStatus.includes("No complaint") ? "#c53030" : "#22543d", borderRadius: "4px", marginTop: "1rem", marginBottom: "1rem", fontSize: "0.875rem" }}>
+          {saveStatus}
+        </div>
+      )}
+
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1.5rem", borderTop: "1px solid #e2e8f0", paddingTop: "1.5rem" }}>
+        <button 
+          onClick={handleReset}
+          style={{ padding: "0.5rem 1rem", backgroundColor: "#e2e8f0", border: "1px solid #cbd5e0", borderRadius: "4px", cursor: "pointer", fontWeight: 600, color: "#4a5568" }}
+        >
+          Reset Form
+        </button>
+        <button 
+          onClick={handleSave}
+          style={{ padding: "0.5rem 1rem", backgroundColor: "#3182ce", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: 600, color: "white" }}
+        >
+          Save Complaint
+        </button>
+      </div>
     </div>
   );
 };

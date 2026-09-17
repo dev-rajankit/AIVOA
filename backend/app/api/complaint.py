@@ -111,3 +111,25 @@ async def get_complaint_audit_log(complaint_id: str, db: AsyncSession = Depends(
         ))
         
     return response
+
+@router.post("/{complaint_id}/save")
+async def save_complaint(complaint_id: str, db: AsyncSession = Depends(get_db)):
+    """
+    Mark a complaint as ready to commit.
+    """
+    try:
+        cid = uuid.UUID(complaint_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid UUID format")
+        
+    result = await db.execute(select(Complaint).where(Complaint.id == cid))
+    complaint = result.scalar_one_or_none()
+    
+    if not complaint:
+        raise HTTPException(status_code=404, detail="Complaint not found")
+        
+    from app.db.models import ComplaintStatus
+    complaint.status = ComplaintStatus.ready_to_commit
+    await db.commit()
+    
+    return {"message": "Complaint saved successfully", "status": complaint.status.value}
