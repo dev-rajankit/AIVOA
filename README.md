@@ -32,16 +32,17 @@ PostgreSQL
 | Alembic migrations   | ✅ Complete  | Async-aware, initial migration generated       |
 | Pydantic schemas     | ✅ Complete  | Canonical contracts for API, LLM, frontend     |
 | LangGraph agent      | ✅ Scaffold  | Mocked deterministic workflow structure        |
-| Groq LLM integration | 🔲 Planned   | Chunk 5                                        |
-| Redux Toolkit        | 🔲 Planned   | Chunk 5                                        |
-| Complaint form UI    | 🔲 Planned   | Chunk 5–6                                      |
+| Groq LLM extraction  | ✅ Complete  | Provider abstraction + structured output       |
+| Groq LLM reasoning   | 🔲 Planned   | Chunk 6+                                       |
+| Redux Toolkit        | 🔲 Planned   | Chunk 6                                        |
+| Complaint form UI    | 🔲 Planned   | Chunk 6–7                                      |
 | Risk/CAPA assessment | 🔲 Planned   | Chunk 8                                        |
 | PDF/email parsing    | 🔲 Planned   | Chunk 7                                        |
 
 ### Current Status
 
 ```
-Chunk 4 — LangGraph Workflow Skeleton
+Chunk 5 — Real LLM Extraction
 ```
 
 ---
@@ -235,6 +236,41 @@ flowchart TD
 
 ---
 
+## Real LLM Extraction (Chunk 5)
+
+The extraction node now calls Groq's API for structured complaint field extraction.
+
+```
+User Input
+    ↓
+Extraction Node
+    ↓
+LLM Provider (GroqLLMProvider)
+    ↓
+Groq API (json_schema, strict: true)
+    ↓
+Structured ComplaintFields
+    ↓
+Pydantic Validation
+    ↓
+LangGraph State (extracted_fields)
+    ↓
+Merge Node
+```
+
+**Key design decisions:**
+
+- **Provider abstraction**: `LLMProvider` protocol in `app/llm/base.py` keeps the graph independent from any specific LLM vendor. `GroqLLMProvider` is the concrete implementation.
+- **Structured output**: Uses Groq's `json_schema` response format with `strict: true` — constrained decoding guarantees the JSON matches `ComplaintFields` exactly.
+- **Null semantics**: Missing fields are `null` / `None`, never `"Unknown"` or `"N/A"`. The merge node ignores null values by design.
+- **Input size limit**: 10,000 characters maximum to prevent runaway token usage.
+- **Dependency injection**: `build_graph(llm_provider=..., extraction_model=...)` — tests inject a `FakeLLMProvider`, production uses `GroqLLMProvider`.
+- **Extraction model**: Configurable via `EXTRACTION_MODEL` env var (default: `openai/gpt-oss-20b`).
+- **Tests never call Groq**: All 12 extraction tests use deterministic fake providers.
+- **Risk/CAPA and other reasoning**: Still mocked. Only extraction uses the LLM in this chunk.
+
+---
+
 ## Async Architecture
 
 The backend is built async-first (`async def` endpoints, async-compatible structure). This is deliberate because the production workflow involves:
@@ -264,17 +300,23 @@ AIVOA/
 │   │   ├── schemas/
 │   │   │   ├── __init__.py      # Public exports
 │   │   │   └── complaint.py     # Canonical Pydantic data contracts
-│   │   └── graph/
-│   │       ├── state.py         # LangGraph state TypedDict
-│   │       ├── graph.py         # Workflow wiring
-│   │       └── nodes/           # Deterministic/mocked nodes
-│   │           ├── router.py
-│   │           ├── extraction.py
-│   │           ├── merge.py
-│   │           ├── completeness.py
-│   │           ├── duplicate.py
-│   │           ├── risk_capa.py
-│   │           └── compose_response.py
+│   │   ├── graph/
+│   │   │   ├── state.py         # LangGraph state TypedDict
+│   │   │   ├── graph.py         # Workflow wiring (provider-injectable)
+│   │   │   ├── prompts/
+│   │   │   │   └── extraction.py # Extraction system prompt
+│   │   │   └── nodes/           # Workflow nodes
+│   │   │       ├── router.py
+│   │   │       ├── extraction.py # LLM-powered (via provider)
+│   │   │       ├── merge.py
+│   │   │       ├── completeness.py
+│   │   │       ├── duplicate.py
+│   │   │       ├── risk_capa.py
+│   │   │       └── compose_response.py
+│   │   └── llm/
+│   │       ├── __init__.py      # Public exports
+│   │       ├── base.py          # LLMProvider protocol
+│   │       └── groq_provider.py # Groq implementation
 │   ├── alembic/
 │   │   ├── env.py               # Async migration environment
 │   │   └── versions/            # Migration scripts
@@ -282,7 +324,8 @@ AIVOA/
 │   │   ├── test_health.py       # Health endpoint tests (4)
 │   │   ├── test_models.py       # Model/metadata tests (18)
 │   │   ├── test_schemas.py      # Schema validation tests (31)
-│   │   └── test_graph.py        # LangGraph mock workflow tests (6)
+│   │   ├── test_graph.py        # LangGraph workflow tests (6)
+│   │   └── test_extraction.py   # LLM extraction tests (12)
 │   ├── alembic.ini
 │   ├── requirements.txt
 │   └── pytest.ini
