@@ -10,3 +10,4 @@ anyio[trio]==4.*
 pytest-anyio==0.*
 httpx==0.28.*
 langgraph==0.2.*
+groq==0.25.*
