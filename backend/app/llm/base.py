@@ -6,26 +6,28 @@ Per architecture §5.5: keep the graph independent from the specific LLM
 provider so a future move to a different provider is a new file, not a
 rewrite of every node.
 
-Only GroqLLMProvider is implemented in this chunk.
+Supports both sync and async structured_completion. The async variant
+is used in production (FastAPI event loop); the sync variant is available
+for simple scripts/tests.
 """
 
 from __future__ import annotations
 
-from typing import Protocol, TypeVar
+from typing import Protocol, TypeVar, runtime_checkable
 
 from pydantic import BaseModel
 
 T = TypeVar("T", bound=BaseModel)
 
 
+@runtime_checkable
 class LLMProvider(Protocol):
     """
     Protocol for LLM providers.
 
-    Any provider must implement structured_completion, which takes a
-    system prompt, user message, a Pydantic model class as the response
-    schema, and a model identifier, and returns a validated instance of
-    that model.
+    Any provider must implement structured_completion (sync) and
+    astructured_completion (async). The async variant is used by
+    FastAPI to avoid blocking the event loop.
     """
 
     def structured_completion(
@@ -36,22 +38,18 @@ class LLMProvider(Protocol):
         schema: type[T],
         model: str,
     ) -> T:
-        """
-        Request a structured completion from the LLM.
+        """Synchronous structured completion."""
+        ...
 
-        Args:
-            system: System prompt instructing the model's role.
-            user: User message / data to process.
-            schema: Pydantic model class defining the expected output shape.
-            model: Model identifier (e.g. "openai/gpt-oss-20b").
-
-        Returns:
-            A validated instance of `schema`.
-
-        Raises:
-            ExtractionError: If the LLM response cannot be parsed/validated.
-            RuntimeError: If the provider is misconfigured.
-        """
+    async def astructured_completion(
+        self,
+        *,
+        system: str,
+        user: str,
+        schema: type[T],
+        model: str,
+    ) -> T:
+        """Async structured completion — used by FastAPI."""
         ...
 
 

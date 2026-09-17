@@ -12,12 +12,13 @@ The node orchestrates:
 
 The provider is injected via make_extraction_node() so tests can
 substitute a FakeLLMProvider without calling Groq.
+This node is now async-compatible so it won't block the FastAPI event loop.
 """
 
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable
+from typing import Any, Callable, Coroutine
 
 from app.graph.prompts.extraction import (
     EXTRACTION_SYSTEM_PROMPT,
@@ -33,7 +34,7 @@ logger = logging.getLogger(__name__)
 def make_extraction_node(
     provider: LLMProvider,
     model: str,
-) -> Callable[[CopilotState], dict[str, Any]]:
+) -> Callable[[CopilotState], Coroutine[Any, Any, dict[str, Any]]]:
     """
     Factory that creates an extraction node bound to a specific provider
     and model. This is how dependency injection works:
@@ -45,7 +46,7 @@ def make_extraction_node(
         make_extraction_node(FakeLLMProvider(), "fake-model")
     """
 
-    def extraction_node(state: CopilotState) -> dict[str, Any]:
+    async def extraction_node(state: CopilotState) -> dict[str, Any]:
         """Extract structured complaint fields from user input via LLM."""
         user_input = state.get("user_input", "")
 
@@ -64,7 +65,7 @@ def make_extraction_node(
 
         # --- Call the provider ---
         try:
-            result: ComplaintFields = provider.structured_completion(
+            result: ComplaintFields = await provider.astructured_completion(
                 system=EXTRACTION_SYSTEM_PROMPT,
                 user=user_input,
                 schema=ComplaintFields,

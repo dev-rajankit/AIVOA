@@ -49,7 +49,7 @@ def build_graph(
     else:
         # Fallback for backward compatibility / structural tests:
         # return empty extraction so the rest of the graph still runs.
-        def extraction(state: CopilotState) -> dict:
+        async def extraction(state: CopilotState) -> dict:
             return {"extracted_fields": {}}
 
     builder = StateGraph(CopilotState)

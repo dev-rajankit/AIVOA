@@ -1,19 +1,37 @@
 from app.graph.state import CopilotState
 
-def completeness_node(state: CopilotState) -> CopilotState:
+# Configurable threshold for readiness (architecture constraint)
+COMPLETENESS_READY_THRESHOLD_PCT = 100.0
+
+def completeness_node(state: CopilotState) -> dict:
     """
     Completeness node for the AIVOA Copilot workflow.
     
     Inspects merged_form and calculates completeness_pct and missing_fields.
+    Different required fields based on dosage_form (API vs FDF).
     """
     merged_form = state.get("merged_form", {})
     
-    # Base required fields
-    required_fields = ["product_name", "batch_lot_number", "dosage_form"]
+    # Common complaint information across all dosage forms
+    required_fields = [
+        "complaint_source",
+        "customer_name",
+        "product_name",
+        "batch_lot_number",
+        "complaint_date",
+        "complaint_type",
+        "detailed_description",
+        "dosage_form"
+    ]
     
-    # Branching based on dosage_form
-    if merged_form.get("dosage_form") == "FDF":
+    # Form-specific required fields
+    dosage_form = merged_form.get("dosage_form")
+    if dosage_form == "FDF":
+        # Finished Dosage Form typically requires quantity
         required_fields.append("affected_quantity")
+    elif dosage_form == "API":
+        # Active Pharmaceutical Ingredient
+        required_fields.append("affected_quantity") # API also needs amount
         
     missing = []
     for field in required_fields:
