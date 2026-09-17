@@ -113,8 +113,8 @@ class Complaint(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     complaint_number: Mapped[str] = mapped_column(
-        String(20), unique=True, nullable=False,
-        comment="Human-readable business ID, e.g. CC-2026-00154"
+        String(50), unique=True, nullable=False,
+        comment="Human-readable business ID, e.g. CC-20260917063311-529"
     )
     status: Mapped[ComplaintStatus] = mapped_column(
         Enum(ComplaintStatus, name="complaintstatus", create_constraint=True),

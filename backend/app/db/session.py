@@ -22,11 +22,21 @@ from sqlalchemy.ext.asyncio import (
 
 from app.core.config import settings
 
+import sys
+from sqlalchemy.pool import NullPool
+
+is_pytest = "pytest" in sys.modules
+
+engine_kwargs = {}
+if not is_pytest:
+    engine_kwargs["pool_size"] = 5
+    engine_kwargs["max_overflow"] = 10
+
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=(settings.ENVIRONMENT == "development"),
-    pool_size=5,
-    max_overflow=10,
+    poolclass=NullPool if is_pytest else None,
+    **engine_kwargs
 )
 
 async_session_factory = async_sessionmaker(

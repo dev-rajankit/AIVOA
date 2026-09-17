@@ -25,11 +25,18 @@ class FakeLLMProvider:
 def fake_graph():
     return build_graph(llm_provider=FakeLLMProvider(), extraction_model="fake-model")
 
+async def mock_get_db():
+    from unittest.mock import AsyncMock
+    yield AsyncMock()
+
 @pytest.fixture
-def client(fake_graph):
+async def client(fake_graph):
     # Override the graph dependency
+    from app.db.session import get_db
     app.dependency_overrides[get_graph] = lambda: fake_graph
-    yield AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
+    app.dependency_overrides[get_db] = mock_get_db
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        yield ac
     app.dependency_overrides.clear()
 
 @pytest.mark.anyio

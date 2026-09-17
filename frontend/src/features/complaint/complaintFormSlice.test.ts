@@ -12,6 +12,9 @@ describe("complaintFormSlice", () => {
       changedFields: [],
       completenessPct: 50,
       missingFields: [],
+      duplicateStatus: "UNIQUE" as const,
+      duplicateMatches: [],
+      complaintId: null,
     };
 
     const action = applyFormPatch({

@@ -2,15 +2,21 @@ import React from "react";
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { Provider } from "react-redux";
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { ComplaintForm } from "./ComplaintForm";
 import complaintFormReducer from "../../features/complaint/complaintFormSlice";
+import "@testing-library/jest-dom";
 
-const renderWithProviders = (ui: React.ReactElement, preloadedState: any = {}) => {
+const rootReducer = combineReducers({
+  complaintForm: complaintFormReducer,
+});
+
+const renderWithProviders = (
+  ui: React.ReactElement,
+  preloadedState: any = {}
+) => {
   const store = configureStore({
-    reducer: {
-      complaintForm: complaintFormReducer,
-    },
+    reducer: rootReducer,
     preloadedState,
   });
 
