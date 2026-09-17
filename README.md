@@ -34,16 +34,33 @@ PostgreSQL
 | LangGraph agent      | ✅ Scaffold  | Mocked deterministic workflow structure        |
 | Groq LLM extraction  | ✅ Complete  | Provider abstraction + structured output       |
 | Groq LLM reasoning   | 🔲 Planned   | Chunk 8                                        |
-| Redux Toolkit        | 🔲 Planned   | Chunk 7                                        |
-| Complaint form UI    | 🔲 Planned   | Chunk 7                                        |
+| Redux Toolkit        | ✅ Complete  | Application state (complaint form, chat, etc)  |
+| Complaint form UI    | ✅ Complete  | Copilot chat and form rendering                |
 | Risk/CAPA assessment | 🔲 Planned   | Chunk 8                                        |
 | PDF/email parsing    | 🔲 Planned   | Chunk 9                                        |
 
 ### Current Status
 
 ```
-Chunk 6 — Tool 2 End-to-End API
+Chunk 7 — Frontend Skeleton + Copilot UI
 ```
+
+---
+
+## Frontend UI (Chunk 7)
+
+The frontend is implemented using React, Vite, Redux Toolkit, and standard CSS. It communicates seamlessly with the stateless LangGraph backend logic implemented in Chunk 6.
+
+**Key Architecture Points:**
+1. **Redux State Management:** Separated into `sessionSlice`, `chatSlice`, `complaintFormSlice`, and `riskAssessmentSlice`.
+2. **Stateless Updates:** The `currentForm` state is passed in every Copilot chat request. The backend returns a `form_patch` and an array of `changed_fields`.
+3. **UI Highlighting:** `ComplaintForm.tsx` selectively highlights *only* the fields that changed during the latest API turn. Unrelated fields are preserved and untouched.
+4. **API Base URL:** Configured via `.env` file mapping `VITE_API_BASE_URL` (default: `http://localhost:8000`).
+
+**How to run locally:**
+1. **Backend:** `cd backend && source .venv/Scripts/activate && uvicorn app.main:app --reload`
+2. **Frontend:** `cd frontend && npm install && npm run dev`
+3. Navigate to `http://localhost:5173` and test the chat functionality with multiple turns.
 
 ---
 
