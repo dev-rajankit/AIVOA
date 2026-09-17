@@ -32,9 +32,12 @@ const complaintFormSlice = createSlice({
         action.payload;
         
       if (patch) {
+        const safePatch = Object.fromEntries(
+          Object.entries(patch).filter(([_, v]) => v !== null && v !== undefined)
+        );
         state.currentForm = {
           ...state.currentForm,
-          ...patch,
+          ...safePatch,
         };
       }
       

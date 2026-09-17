@@ -15,9 +15,12 @@ const riskAssessmentSlice = createSlice({
   reducers: {
     applyRiskPatch(state, action: PayloadAction<RiskAssessment | null>) {
       if (action.payload) {
+        const safePatch = Object.fromEntries(
+          Object.entries(action.payload).filter(([_, v]) => v !== null && v !== undefined)
+        );
         state.currentRisk = {
           ...state.currentRisk,
-          ...action.payload,
+          ...safePatch,
         };
       }
     },

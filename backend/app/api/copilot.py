@@ -20,16 +20,18 @@ def get_graph():
     if API keys aren't set during test collection.
     """
     global _prod_graph
-    if _prod_graph is None:
+    # If the graph was never built, or if it previously fell back to the mock graph, try to build it
+    if _prod_graph is None or _prod_graph is copilot_graph:
         try:
             _prod_graph = build_production_graph()
+            logger.info("Successfully built production graph.")
         except Exception as e:
             logger.error(f"Failed to build production graph: {e}")
             # Fallback to the mocked graph if production fails (e.g., missing API key)
             _prod_graph = copilot_graph
     return _prod_graph
 
-@router.post("/message", response_model=CopilotMessageResponse)
+@router.post("/message", response_model=CopilotMessageResponse, response_model_exclude_none=True)
 async def process_copilot_message(
     request: CopilotMessageRequest,
     graph=Depends(get_graph),

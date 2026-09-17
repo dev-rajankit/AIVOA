@@ -25,4 +25,4 @@ def risk_capa_node(state: CopilotState) -> CopilotState:
         }
         return {"risk_assessment": risk_assessment}
         
-    return {"risk_assessment": {}}
+    return {"risk_assessment": None}

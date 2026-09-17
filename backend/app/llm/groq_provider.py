@@ -49,6 +49,12 @@ class GroqLLMProvider:
 
     def _build_request_params(self, system: str, user: str, schema: type[T], model: str) -> dict:
         """Build the shared request parameters for both sync and async calls."""
+        schema_dict = schema.model_json_schema()
+        # For structured outputs with strict=True, all properties must be required.
+        if "properties" in schema_dict:
+            schema_dict["required"] = list(schema_dict["properties"].keys())
+            schema_dict["additionalProperties"] = False
+
         return {
             "model": model,
             "messages": [
@@ -60,7 +66,7 @@ class GroqLLMProvider:
                 "json_schema": {
                     "name": schema.__name__,
                     "strict": True,
-                    "schema": schema.model_json_schema(),
+                    "schema": schema_dict,
                 },
             },
             "temperature": 0.0,

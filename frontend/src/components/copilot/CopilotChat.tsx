@@ -16,10 +16,18 @@ export const CopilotChat: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   const handleSend = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!input.trim() || loading) return;
+    if (loading) return;
 
+    if (!input.trim()) {
+      setValidationError("Message cannot be empty.");
+      return;
+    }
+
+    setValidationError(null);
     dispatch(addUserMessage(input));
     dispatch(sendMessage(input));
     setInput("");
@@ -52,6 +60,11 @@ export const CopilotChat: React.FC = () => {
         {error && (
           <div className="chat-error">
             <p>Error: {error}</p>
+          </div>
+        )}
+        {validationError && (
+          <div className="chat-error">
+            <p>Validation Error: {validationError}</p>
           </div>
         )}
         <div ref={messagesEndRef} />
