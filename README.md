@@ -33,17 +33,53 @@ PostgreSQL
 | Pydantic schemas     | ✅ Complete  | Canonical contracts for API, LLM, frontend     |
 | LangGraph agent      | ✅ Scaffold  | Mocked deterministic workflow structure        |
 | Groq LLM extraction  | ✅ Complete  | Provider abstraction + structured output       |
-| Groq LLM reasoning   | 🔲 Planned   | Chunk 6+                                       |
-| Redux Toolkit        | 🔲 Planned   | Chunk 6                                        |
-| Complaint form UI    | 🔲 Planned   | Chunk 6–7                                      |
+| Groq LLM reasoning   | 🔲 Planned   | Chunk 8                                        |
+| Redux Toolkit        | 🔲 Planned   | Chunk 7                                        |
+| Complaint form UI    | 🔲 Planned   | Chunk 7                                        |
 | Risk/CAPA assessment | 🔲 Planned   | Chunk 8                                        |
-| PDF/email parsing    | 🔲 Planned   | Chunk 7                                        |
+| PDF/email parsing    | 🔲 Planned   | Chunk 9                                        |
 
 ### Current Status
 
 ```
-Chunk 5 — Real LLM Extraction
+Chunk 6 — Tool 2 End-to-End API
 ```
+
+---
+
+## Tool 2 End-to-End (Chunk 6)
+
+The LangGraph workflow is now wired to a real FastAPI endpoint (`POST /api/copilot/message`) demonstrating a multi-turn, state-preserving edit flow without a database.
+
+**Key workflow logic:**
+1. **Router:** Deterministically decides whether the user is making a `new_complaint` or an `edit_complaint` based on the presence of `current_form` and correction keywords.
+2. **Extraction:** LLM strictly extracts only what is present in the current message.
+3. **Merge:** Intelligently overlays the extraction onto `current_form`. Unchanged/null fields do not overwrite existing data.
+4. **Completeness:** Recalculates dynamically based on required fields per dosage form (API vs FDF).
+5. **API Response:** Returns a `form_patch` and a `changed_fields` array containing *only* the fields modified in this turn.
+
+**How to test manually (Postman/cURL):**
+1. Run backend: `cd backend && source .venv/Scripts/activate && uvicorn app.main:app --reload`
+2. **Turn 1 (New):** POST to `http://localhost:8000/api/copilot/message`
+   ```json
+   {
+       "session_id": "test",
+       "message": "Customer reported discolored Paracetamol, batch B123"
+   }
+   ```
+3. Copy the `form_patch` from the response.
+4. **Turn 2 (Edit):** POST again, passing the copied patch as `current_form`:
+   ```json
+   {
+       "session_id": "test",
+       "message": "Sorry, batch should be B124",
+       "current_form": {
+           "product_name": "Paracetamol",
+           "batch_lot_number": "B123"
+       }
+   }
+   ```
+5. Observe the response: `form_patch` contains only `{"batch_lot_number": "B124"}` and `product_name` is preserved.
 
 ---
 
