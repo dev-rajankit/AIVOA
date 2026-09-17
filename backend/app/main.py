@@ -15,6 +15,8 @@ calls per request, and blocking would starve concurrent users.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api import api_router
+
 app = FastAPI(
     title="AIVOA",
     description="AI-Powered Customer Complaint Management System for Pharma QMS",
@@ -30,6 +32,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(api_router, prefix="/api")
+
 
 
 @app.get("/health")

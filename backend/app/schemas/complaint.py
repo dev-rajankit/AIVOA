@@ -160,6 +160,9 @@ class CopilotMessageRequest(BaseModel):
     input_type: Literal["text", "document"] = Field(
         "text", description="Whether this is plain text or a document upload"
     )
+    current_form: ComplaintFields | None = Field(
+        None, description="The current merged complaint form prior to this turn"
+    )
 
     model_config = {"extra": "forbid"}
 
@@ -190,6 +193,18 @@ class CopilotMessageResponse(BaseModel):
     changed_fields: list[str] = Field(
         default_factory=list,
         description="Field names that changed this turn — drives frontend highlighting",
+    )
+    completeness_pct: float = Field(
+        0.0,
+        description="Percentage of required fields present in the merged form",
+    )
+    missing_fields: list[str] = Field(
+        default_factory=list,
+        description="List of required fields missing from the merged form",
+    )
+    intent: str = Field(
+        "new_complaint",
+        description="The determined intent of the user's message",
     )
 
     model_config = {"extra": "forbid"}
