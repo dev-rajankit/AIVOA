@@ -90,7 +90,12 @@ class RiskAssessment(BaseModel):
     not at schema validation level.
     """
 
-    severity: Literal["Minor", "Major", "Critical"]
+    severity: Literal["Minor", "Major", "Critical"] | None = Field(
+        None, description="Severity classification"
+    )
+    severity_score: int | None = Field(
+        None, ge=1, le=10, description="Severity score 1-10"
+    )
     occurrence: int | None = Field(
         None, ge=1, le=10, description="FMEA occurrence score 1-10"
     )
@@ -105,6 +110,11 @@ class RiskAssessment(BaseModel):
         None,
         description="AI's 5-Whys/6M first guess — labeled as a hint, not a finding",
     )
+    risk_level: Literal["LOW", "MEDIUM", "HIGH", "CRITICAL"] | None = Field(
+        None, description="Computed risk classification based on RPN"
+    )
+    corrective_action: str | None = None
+    preventive_action: str | None = None
     capa_recommendation: str | None = None
     regulatory_flag: bool = Field(
         False, description="True if complaint looks FAR-reportable"
@@ -221,5 +231,44 @@ class CopilotMessageResponse(BaseModel):
         "new_complaint",
         description="The determined intent of the user's message",
     )
+    complaint_id: str | None = Field(
+        None, description="UUID of the persisted complaint"
+    )
 
     model_config = {"extra": "forbid"}
+
+# =============================================================================
+# Complaint API contracts — GET /api/complaints/{id}
+# =============================================================================
+
+
+class AuditLogResponse(BaseModel):
+    """A single audit log event."""
+    id: str
+    field_name: str
+    old_value: str | None = None
+    new_value: str
+    changed_by: str
+    source_message: str | None = None
+    created_at: str
+
+    model_config = {"extra": "ignore"}
+
+
+class ComplaintResponse(BaseModel):
+    """
+    Response body for GET /api/complaints/{id}.
+    Includes the canonical complaint fields, risk assessments, and metadata.
+    """
+    id: str
+    complaint_number: str
+    status: str
+    created_at: str
+    updated_at: str
+    
+    fields: ComplaintFields
+    risk_assessments: list[RiskAssessment] = Field(default_factory=list)
+    duplicate_status: str
+    matched_complaint_id: str | None = None
+    
+    model_config = {"extra": "ignore"}

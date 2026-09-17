@@ -69,14 +69,15 @@ def generate_complaint_pdf(data: ReportRequest) -> bytes:
     # --- Risk Assessment & CAPA ---
     section_header("Risk Assessment & CAPA")
     if risk:
-        print_row("Severity", risk.severity)
+        print_row("Risk Level", risk.risk_level)
+        print_row("Severity", str(risk.severity_score) if risk.severity_score else None)
         print_row("Occurrence", str(risk.occurrence) if risk.occurrence else None)
         print_row("Detectability", str(risk.detectability) if risk.detectability else None)
         print_row("RPN", str(risk.rpn) if risk.rpn else None)
         print_row("Regulatory Flag", "Yes" if risk.regulatory_flag else "No")
         print_row("Root Cause Hint", risk.root_cause_hint)
-        print_row("Recommended Action", risk.recommended_action)
-        print_row("CAPA Recommendation", risk.capa_recommendation)
+        print_row("Corrective Action", risk.corrective_action)
+        print_row("Preventive Action", risk.preventive_action)
         print_row("AI Reasoning Summary", risk.ai_reasoning_summary)
     else:
         pdf.set_font("helvetica", "I", 10)

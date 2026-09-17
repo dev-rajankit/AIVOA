@@ -41,4 +41,9 @@ class Settings(BaseSettings):
     TOP_K_DUPLICATES: int = 5
 
 
+    # --- Risk Assessment ---
+    RPN_CRITICAL_THRESHOLD: int = 500
+    RPN_HIGH_THRESHOLD: int = 200
+    RPN_MEDIUM_THRESHOLD: int = 100
+
 settings = Settings()

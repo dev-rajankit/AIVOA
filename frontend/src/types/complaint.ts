@@ -14,13 +14,15 @@ export type ComplaintFields = {
 };
 
 export type RiskAssessment = {
-  severity?: "Minor" | "Major" | "Critical";
+  severity_score?: number;
   occurrence?: number;
   detectability?: number;
   rpn?: number;
+  risk_level?: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   recommended_action?: string;
   root_cause_hint?: string;
-  capa_recommendation?: string;
+  corrective_action?: string;
+  preventive_action?: string;
   regulatory_flag?: boolean;
   ai_reasoning_summary?: string;
 };

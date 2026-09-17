@@ -8,6 +8,7 @@ export interface ComplaintFormState {
   missingFields: string[];
   duplicateStatus: DuplicateStatus;
   duplicateMatches: DuplicateMatch[];
+  complaintId: string | null;
 }
 
 const initialState: ComplaintFormState = {
@@ -17,6 +18,7 @@ const initialState: ComplaintFormState = {
   missingFields: [],
   duplicateStatus: "UNIQUE",
   duplicateMatches: [],
+  complaintId: null,
 };
 
 const complaintFormSlice = createSlice({
@@ -32,6 +34,7 @@ const complaintFormSlice = createSlice({
         missingFields: string[];
         duplicateStatus?: DuplicateStatus;
         duplicateMatches?: DuplicateMatch[];
+        complaintId?: string;
       }>
     ) {
       const { patch, changedFields, completenessPct, missingFields, duplicateStatus, duplicateMatches } =
@@ -52,6 +55,9 @@ const complaintFormSlice = createSlice({
       state.missingFields = missingFields;
       if (duplicateStatus) state.duplicateStatus = duplicateStatus;
       if (duplicateMatches) state.duplicateMatches = duplicateMatches;
+      if (action.payload.complaintId) {
+        state.complaintId = action.payload.complaintId;
+      }
     },
   },
 });

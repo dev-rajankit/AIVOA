@@ -1,0 +1,33 @@
+.audit-panel {
+  margin-top: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.audit-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+}
+
+.audit-item {
+  border-left: 2px solid var(--primary-color);
+  padding-left: 10px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+}
+
+.audit-time {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  margin-bottom: 2px;
+}
+
+.audit-old {
+  color: var(--text-secondary);
+  text-decoration: line-through;
+}
+
+.audit-new {
+  color: var(--success-color);
+}

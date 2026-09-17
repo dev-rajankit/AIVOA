@@ -211,9 +211,17 @@ class RiskAssessment(Base):
         ForeignKey("complaints.id", ondelete="CASCADE"),
         nullable=False,
     )
-    severity: Mapped[RiskSeverity] = mapped_column(
-        Enum(RiskSeverity, name="riskseverity", create_constraint=True),
-        nullable=False,
+    severity: Mapped[str | None] = mapped_column(
+        String(20), nullable=True,
+        comment="Minor, Major, Critical"
+    )
+    severity_score: Mapped[int | None] = mapped_column(
+        Integer, nullable=True,
+        comment="Severity score 1-10"
+    )
+    risk_level: Mapped[str | None] = mapped_column(
+        String(20), nullable=True,
+        comment="LOW, MEDIUM, HIGH, CRITICAL"
     )
     occurrence_score: Mapped[int | None] = mapped_column(
         Integer, nullable=True,
@@ -232,7 +240,12 @@ class RiskAssessment(Base):
         Text, nullable=True,
         comment="AI's 5-Whys/6M first guess — labeled as a hint, not a finding"
     )
-    capa_recommendation: Mapped[str | None] = mapped_column(Text, nullable=True)
+    corrective_action: Mapped[str | None] = mapped_column(Text, nullable=True)
+    preventive_action: Mapped[str | None] = mapped_column(Text, nullable=True)
+    capa_recommendation: Mapped[str | None] = mapped_column(
+        Text, nullable=True,
+        comment="Original combined CAPA string"
+    )
     regulatory_flag: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False,
         comment="True if complaint looks FAR-reportable"

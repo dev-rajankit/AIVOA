@@ -5,6 +5,7 @@ import { CompletenessIndicator } from "./components/common/CompletenessIndicator
 import { DuplicatePanel } from "./components/common/DuplicatePanel";
 import { RiskPanel } from "./components/risk/RiskPanel";
 import { ReportActions } from "./components/common/ReportActions";
+import { AuditPanel } from "./components/common/AuditPanel";
 import "./App.css";
 
 const App: React.FC = () => {
@@ -28,6 +29,7 @@ const App: React.FC = () => {
         <div className="right-panel">
           <RiskPanel />
           <ReportActions />
+          <AuditPanel />
         </div>
       </main>
     </div>

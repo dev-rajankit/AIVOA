@@ -5,6 +5,7 @@ export type CopilotMessageRequest = {
   message: string;
   input_type?: "text" | "document";
   current_form?: ComplaintFields;
+  complaint_id?: string;
 };
 
 export type CopilotMessageResponse = {
@@ -17,4 +18,5 @@ export type CopilotMessageResponse = {
   intent: string;
   duplicate_status?: DuplicateStatus;
   duplicate_matches?: DuplicateMatch[];
+  complaint_id?: string;
 };

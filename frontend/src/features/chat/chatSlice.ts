@@ -34,11 +34,14 @@ export const sendMessage = createAsyncThunk(
   async (messageContent: string, { dispatch, getState, rejectWithValue }) => {
     try {
       const state = getState() as RootState;
-      const request = {
+      const request: import("../../types/copilot").CopilotMessageRequest = {
         session_id: state.session.sessionId,
         message: messageContent,
         current_form: state.complaintForm.currentForm,
       };
+      if (state.complaintForm.complaintId) {
+        request.complaint_id = state.complaintForm.complaintId;
+      }
 
       const response = await sendCopilotMessage(request);
 
@@ -50,6 +53,7 @@ export const sendMessage = createAsyncThunk(
           missingFields: response.missing_fields,
           duplicateStatus: response.duplicate_status,
           duplicateMatches: response.duplicate_matches,
+          complaintId: response.complaint_id,
         })
       );
 
