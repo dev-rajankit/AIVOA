@@ -2,7 +2,9 @@ import React from "react";
 import { ComplaintForm } from "./components/complaint/ComplaintForm";
 import { CopilotChat } from "./components/copilot/CopilotChat";
 import { CompletenessIndicator } from "./components/common/CompletenessIndicator";
+import { DuplicatePanel } from "./components/common/DuplicatePanel";
 import { RiskPanel } from "./components/risk/RiskPanel";
+import { ReportActions } from "./components/common/ReportActions";
 import "./App.css";
 
 const App: React.FC = () => {
@@ -16,6 +18,7 @@ const App: React.FC = () => {
         <div className="left-panel">
           <ComplaintForm />
           <CompletenessIndicator />
+          <DuplicatePanel />
         </div>
         
         <div className="center-panel">
@@ -24,6 +27,7 @@ const App: React.FC = () => {
         
         <div className="right-panel">
           <RiskPanel />
+          <ReportActions />
         </div>
       </main>
     </div>

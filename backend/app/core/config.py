@@ -35,5 +35,10 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     LOG_LEVEL: str = "INFO"
 
+    # --- Duplicate Detection ---
+    DUPLICATE_THRESHOLD: float = 0.85
+    POSSIBLE_DUPLICATE_THRESHOLD: float = 0.70
+    TOP_K_DUPLICATES: int = 5
+
 
 settings = Settings()

@@ -141,6 +141,15 @@ class ExtractionResult(BaseModel):
 # =============================================================================
 
 
+class DuplicateMatch(BaseModel):
+    """A matched complaint from duplicate detection."""
+    similarity_score: float
+    matched_complaint_id: str
+    matched_complaint_summary: str | None = None
+    
+    model_config = {"extra": "forbid"}
+
+
 class CopilotMessageRequest(BaseModel):
     """
     Request body for POST /api/copilot/message.
@@ -201,6 +210,12 @@ class CopilotMessageResponse(BaseModel):
     missing_fields: list[str] = Field(
         default_factory=list,
         description="List of required fields missing from the merged form",
+    )
+    duplicate_status: Literal["UNIQUE", "POSSIBLE_DUPLICATE", "DUPLICATE"] = Field(
+        "UNIQUE", description="Duplicate detection classification"
+    )
+    duplicate_matches: list[DuplicateMatch] = Field(
+        default_factory=list, description="Top matches if duplicate_status != UNIQUE"
     )
     intent: str = Field(
         "new_complaint",

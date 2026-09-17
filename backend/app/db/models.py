@@ -40,6 +40,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from pgvector.sqlalchemy import Vector
 
 
 # =============================================================================
@@ -72,6 +73,13 @@ class RiskSeverity(str, enum.Enum):
 class AuditActor(str, enum.Enum):
     """Who made the change — AI_COPILOT only in Round 1 (§4.3)."""
     AI_COPILOT = "AI_COPILOT"
+
+
+class DuplicateStatus(str, enum.Enum):
+    """Duplicate detection classification."""
+    UNIQUE = "UNIQUE"
+    POSSIBLE_DUPLICATE = "POSSIBLE_DUPLICATE"
+    DUPLICATE = "DUPLICATE"
 
 
 # =============================================================================
@@ -141,6 +149,21 @@ class Complaint(Base):
     raw_extraction_json: Mapped[dict | None] = mapped_column(
         JSONB, nullable=True,
         comment="Full LLM extraction payload for audit and re-processing"
+    )
+
+    # --- Duplicate Detection ---
+    embedding = mapped_column(
+        Vector(384), nullable=True,
+        comment="all-MiniLM-L6-v2 vector for duplicate detection"
+    )
+    duplicate_status: Mapped[DuplicateStatus] = mapped_column(
+        Enum(DuplicateStatus, name="duplicatestatus", create_constraint=True),
+        nullable=False,
+        default=DuplicateStatus.UNIQUE,
+    )
+    matched_complaint_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("complaints.id"), nullable=True,
+        comment="ID of the best matching historical complaint, if any"
     )
 
     # --- Timestamps ---

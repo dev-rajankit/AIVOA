@@ -1,11 +1,13 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { ComplaintFields } from "../../types/complaint";
+import { ComplaintFields, DuplicateStatus, DuplicateMatch } from "../../types/complaint";
 
 export interface ComplaintFormState {
   currentForm: ComplaintFields;
   changedFields: string[];
   completenessPct: number;
   missingFields: string[];
+  duplicateStatus: DuplicateStatus;
+  duplicateMatches: DuplicateMatch[];
 }
 
 const initialState: ComplaintFormState = {
@@ -13,6 +15,8 @@ const initialState: ComplaintFormState = {
   changedFields: [],
   completenessPct: 0,
   missingFields: [],
+  duplicateStatus: "UNIQUE",
+  duplicateMatches: [],
 };
 
 const complaintFormSlice = createSlice({
@@ -26,9 +30,11 @@ const complaintFormSlice = createSlice({
         changedFields: string[];
         completenessPct: number;
         missingFields: string[];
+        duplicateStatus?: DuplicateStatus;
+        duplicateMatches?: DuplicateMatch[];
       }>
     ) {
-      const { patch, changedFields, completenessPct, missingFields } =
+      const { patch, changedFields, completenessPct, missingFields, duplicateStatus, duplicateMatches } =
         action.payload;
         
       if (patch) {
@@ -44,6 +50,8 @@ const complaintFormSlice = createSlice({
       state.changedFields = changedFields;
       state.completenessPct = completenessPct;
       state.missingFields = missingFields;
+      if (duplicateStatus) state.duplicateStatus = duplicateStatus;
+      if (duplicateMatches) state.duplicateMatches = duplicateMatches;
     },
   },
 });

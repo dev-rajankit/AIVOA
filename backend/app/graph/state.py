@@ -18,6 +18,7 @@ class CopilotState(TypedDict):
     changed_fields: list[str]   # for FE highlighting + audit log
     completeness_pct: float
     missing_fields: list[str]
+    duplicate_status: Literal["UNIQUE", "POSSIBLE_DUPLICATE", "DUPLICATE"]
     duplicate_matches: list[dict]
     risk_assessment: dict       # matches RiskAssessment schema
     assistant_reply: str

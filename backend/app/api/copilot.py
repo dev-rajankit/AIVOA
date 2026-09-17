@@ -84,6 +84,8 @@ async def process_copilot_message(
             completeness_pct=final_state.get("completeness_pct", 0.0),
             missing_fields=final_state.get("missing_fields", []),
             intent=final_state.get("intent", "new_complaint"),
+            duplicate_status=final_state.get("duplicate_status"),
+            duplicate_matches=final_state.get("duplicate_matches"),
         )
         
         return response

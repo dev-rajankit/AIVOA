@@ -24,3 +24,11 @@ export type RiskAssessment = {
   regulatory_flag?: boolean;
   ai_reasoning_summary?: string;
 };
+
+export type DuplicateStatus = "UNIQUE" | "POSSIBLE_DUPLICATE" | "DUPLICATE";
+
+export type DuplicateMatch = {
+  similarity_score: number;
+  matched_complaint_id: string;
+  matched_complaint_summary?: string;
+};

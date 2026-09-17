@@ -86,6 +86,19 @@ async def seed():
                 select(Complaint).where(Complaint.id == data["id"])
             )
             if result.scalar_one_or_none() is None:
+                # Generate embedding
+                from app.graph.nodes.duplicate import get_embedding_model, normalize_text
+                norm_text = normalize_text({
+                    "detailed_description": data["detailed_description"],
+                    "product_name": data["product_name"],
+                    "complaint_type": data["complaint_type"],
+                    "batch_lot_number": data["batch_lot_number"]
+                })
+                model = get_embedding_model()
+                emb = model.encode(norm_text)
+                
+                data["embedding"] = emb.tolist()
+                
                 complaint = Complaint(**data)
                 session.add(complaint)
                 print(f"  [OK] Seeded: {data['complaint_number']}")

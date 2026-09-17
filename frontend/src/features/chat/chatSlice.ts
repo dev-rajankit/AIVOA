@@ -48,6 +48,8 @@ export const sendMessage = createAsyncThunk(
           changedFields: response.changed_fields,
           completenessPct: response.completeness_pct,
           missingFields: response.missing_fields,
+          duplicateStatus: response.duplicate_status,
+          duplicateMatches: response.duplicate_matches,
         })
       );
 

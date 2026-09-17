@@ -1,4 +1,4 @@
-import { ComplaintFields, RiskAssessment } from "./complaint";
+import { ComplaintFields, RiskAssessment, DuplicateMatch, DuplicateStatus } from "./complaint";
 
 export type CopilotMessageRequest = {
   session_id: string;
@@ -15,4 +15,6 @@ export type CopilotMessageResponse = {
   completeness_pct: number;
   missing_fields: string[];
   intent: string;
+  duplicate_status?: DuplicateStatus;
+  duplicate_matches?: DuplicateMatch[];
 };
