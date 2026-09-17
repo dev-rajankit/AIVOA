@@ -5,6 +5,7 @@ These tests use a FakeLLMProvider so they never call Groq.
 No API key, network, or database required.
 """
 
+import pytest
 from app.graph.graph import build_graph, copilot_graph
 from app.graph.state import CopilotState
 from app.schemas.complaint import ComplaintFields
@@ -21,7 +22,7 @@ class FakeLLMProvider:
     behavior but goes through the real provider interface.
     """
 
-    def structured_completion(self, *, system, user, schema, model):
+    async def astructured_completion(self, *, system, user, schema, model):
         text = user.lower()
         fields = {}
 
@@ -71,7 +72,8 @@ def test_graph_structure():
         assert node in nodes
 
 
-def test_basic_graph_execution():
+@pytest.mark.anyio
+async def test_basic_graph_execution():
     """Provide a simple user input and ensure state flows."""
     graph = _build_test_graph()
     initial_state = {
@@ -80,7 +82,7 @@ def test_basic_graph_execution():
         "current_form": {}
     }
 
-    result = graph.invoke(initial_state)
+    result = await graph.ainvoke(initial_state)
 
     assert "assistant_reply" in result
     assert "completeness_pct" in result
@@ -89,7 +91,8 @@ def test_basic_graph_execution():
     assert result["intent"] == "new_complaint"
 
 
-def test_extraction_mock():
+@pytest.mark.anyio
+async def test_extraction_mock():
     """Ensure extraction logic correctly pulls from input."""
     graph = _build_test_graph()
     initial_state = {
@@ -98,7 +101,7 @@ def test_extraction_mock():
         "current_form": {}
     }
 
-    result = graph.invoke(initial_state)
+    result = await graph.ainvoke(initial_state)
 
     extracted = result.get("extracted_fields", {})
     assert extracted.get("product_name") == "Paracetamol"
@@ -107,7 +110,8 @@ def test_extraction_mock():
     assert extracted.get("affected_quantity") == "48 capsules"
 
 
-def test_merge_logic():
+@pytest.mark.anyio
+async def test_merge_logic():
     """Verify merge updates only non-nulls and populates changed_fields."""
     graph = _build_test_graph()
     initial_state = {
@@ -119,7 +123,7 @@ def test_merge_logic():
         }
     }
 
-    result = graph.invoke(initial_state)
+    result = await graph.ainvoke(initial_state)
 
     merged = result["merged_form"]
     changed = result["changed_fields"]
@@ -130,7 +134,8 @@ def test_merge_logic():
     assert "product_name" not in changed
 
 
-def test_completeness_calculation():
+@pytest.mark.anyio
+async def test_completeness_calculation():
     """Verify required fields and API vs FDF logic."""
     graph = _build_test_graph()
 
@@ -140,10 +145,11 @@ def test_completeness_calculation():
         "user_input": "API paracetamol",
         "current_form": {}
     }
-    res_api = graph.invoke(state_api)
-    assert res_api["completeness_pct"] == (2 / 3 * 100)
+    res_api = await graph.ainvoke(state_api)
+    # 9 required fields for API now
+    assert res_api["completeness_pct"] == (2 / 9 * 100)
     assert "batch_lot_number" in res_api["missing_fields"]
-    assert "affected_quantity" not in res_api["missing_fields"]
+    assert "affected_quantity" in res_api["missing_fields"]
 
     # FDF case
     state_fdf = {
@@ -151,13 +157,14 @@ def test_completeness_calculation():
         "user_input": "FDF amoxicillin",
         "current_form": {}
     }
-    res_fdf = graph.invoke(state_fdf)
-    assert res_fdf["completeness_pct"] == 50.0
+    res_fdf = await graph.ainvoke(state_fdf)
+    assert res_fdf["completeness_pct"] == (2 / 9 * 100)
     assert "batch_lot_number" in res_fdf["missing_fields"]
     assert "affected_quantity" in res_fdf["missing_fields"]
 
 
-def test_full_graph_state():
+@pytest.mark.anyio
+async def test_full_graph_state():
     """Verify all expected major fields are present in the final state."""
     graph = _build_test_graph()
     initial_state = {
@@ -166,7 +173,7 @@ def test_full_graph_state():
         "current_form": {}
     }
 
-    result = graph.invoke(initial_state)
+    result = await graph.ainvoke(initial_state)
 
     expected_keys = {
         "session_id", "user_input", "input_type", "intent",
