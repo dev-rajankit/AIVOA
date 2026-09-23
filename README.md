@@ -862,6 +862,3 @@ AIVOA/
 
 ---
 
-## 📄 License
-
-Private — AIVOA AI Product Engineer Intern Assignment.
